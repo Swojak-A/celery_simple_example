@@ -30,9 +30,8 @@ mail = Mail(app)
 
 # Celery tasks
 @celery.task
-def send_async_email():
+def send_async_email(recipient):
     # sending the mail
-    recipient = "pilot.string@gmail.com"
     msg = Message('subject', sender = 'pilot.string@gmail.com', recipients=[recipient])
     msg.body = 'hi, this is the mail sent by using the celery app'  
 
@@ -49,7 +48,8 @@ def index():
     # session['email'] = email
 
     if request.form['submit'] == 'Send':
-        send_async_email()
+        recipient = request.form['email']
+        send_async_email(recipient)
 
     return redirect(url_for('index'))
 
