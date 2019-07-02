@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, flash
 from celery import Celery
 from flask_mail import Mail, Message
 
@@ -31,7 +31,6 @@ mail = Mail(app)
 # Celery tasks
 @celery.task
 def send_async_email(recipient):
-    # sending the mail
     msg = Message('subject', sender = 'pilot.string@gmail.com', recipients=[recipient])
     msg.body = 'hi, this is the mail sent by using the celery app'  
 
@@ -49,7 +48,13 @@ def index():
 
     if request.form['submit'] == 'Send':
         recipient = request.form['email']
-        send_async_email(recipient)
+        send_async_email.delay(recipient)
+        flash(f"An email was sent to {recipient}")
+    if request.form['submit'] == 'Send in 1 minute':
+        recipient = request.form['email']
+        countdown = 20
+        send_async_email.apply_async(args=[recipient], countdown=countdown)
+        flash(f"An email to {recipient} will be sent in {countdown} seconds.")
 
     return redirect(url_for('index'))
 
