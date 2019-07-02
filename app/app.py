@@ -6,6 +6,8 @@ from flask_mail import Mail, Message
 
 app = Flask(__name__)
 
+app.config['SECRET_KEY'] = 	'thi$-i$-$ecret'
+
 # Celery configuration
 app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
 app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
@@ -30,9 +32,10 @@ mail = Mail(app)
 @app.route('/', methods=['GET', 'POST'])  
 def index():
 	if request.method == 'GET':
-		return render_template('index.html')
+		return render_template('index.html', email=session.get('email', ''))
 
 	email = request.form['email']
+	session['email'] = email
 
 	return redirect(url_for('index'))
 
