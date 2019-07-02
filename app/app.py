@@ -6,7 +6,7 @@ from flask_mail import Mail, Message
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 	'thi$-i$-$ecret'
+app.config['SECRET_KEY'] =  'thi$-i$-$ecret'
 
 # Celery configuration
 app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
@@ -25,31 +25,38 @@ app.config['MAIL_USE_SSL'] = True
 
 #instantiate the Mail class  
 mail = Mail(app)  
-  
 
 
-# ROUTES
+
+# Celery tasks
+@celery.task
+def send_async_email():
+    # sending the mail
+    recipient = "pilot.string@gmail.com"
+    msg = Message('subject', sender = 'pilot.string@gmail.com', recipients=[recipient])
+    msg.body = 'hi, this is the mail sent by using the celery app'  
+
+    with app.app_context():
+        mail.send(msg)
+
+# Routes
 @app.route('/', methods=['GET', 'POST'])  
 def index():
-	if request.method == 'GET':
-		return render_template('index.html', email=session.get('email', ''))
+    if request.method == 'GET':
+        return render_template('index.html', email=session.get('email', ''))
 
-	email = request.form['email']
-	session['email'] = email
+    email = request.form['email']
+    # session['email'] = email
 
-	return redirect(url_for('index'))
+    if request.form['submit'] == 'Send':
+        send_async_email()
 
-    # recipient = "pilot.string@gmail.com"
-    # msg = Message('subject', sender = 'pilot.string@gmail.com', recipients=[recipient])  
-    # msg.body = 'hi, this is the mail sent by using the flask web application'  
+    return redirect(url_for('index'))
 
-    # mail.send(msg)
-
-    # return "Mail Sent"  
   
 
 
 if __name__ == '__main__':
-	app.run()
+    app.run()
 
 
