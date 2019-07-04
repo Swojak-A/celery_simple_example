@@ -1,28 +1,26 @@
-version: "3"
+version: "3.4"
+
+x-base: &base
+  build:
+    context: ./app
+    dockerfile: Dockerfile
+  env_file: 
+    - .env
+  depends_on:
+    - redis
 
 services:
   app:
-    build:
-      context: ./app
-      dockerfile: Dockerfile
-    env_file: 
-      - .env
+    <<: *base
     ports:
      - "5001:5000"
-    depends_on:
-      - redis
     command: >
       sh -c "python app.py"
 
   celery:
-    build:
-      context: ./app
-      dockerfile: Dockerfile
-    env_file: 
-      - .env
+    <<: *base
     depends_on:
       - app
-      - redis
     command: >
       sh -c "celery worker -A app.celery --loglevel=info"
 
