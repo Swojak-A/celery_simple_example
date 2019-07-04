@@ -9,8 +9,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] =  'thi$-i$-$ecret'
 
 # Celery configuration
-app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
-app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+app.config['CELERY_BROKER_URL'] = 'redis://redis:6379/0'
+app.config['CELERY_RESULT_BACKEND'] = 'redis://redis:6379/0'
 
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
@@ -31,6 +31,7 @@ mail = Mail(app)
 # Celery tasks
 @celery.task
 def send_async_email(recipient):
+    # print(f"user:{app.config['MAIL_USERNAME']} pass: {app.config['MAIL_PASSWORD']}") # for possibly quick debug
     msg = Message('subject', sender = 'pilot.string@gmail.com', recipients=[recipient])
     msg.body = 'hi, this is the mail sent by using the celery app'  
 
@@ -62,6 +63,6 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True, host="0.0.0.0", port=5000)
 
 
