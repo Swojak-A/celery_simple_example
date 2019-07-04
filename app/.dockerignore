@@ -1,0 +1,4 @@
+# .dockerignore
+
+# cache files
+__pycache__/
