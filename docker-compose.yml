@@ -1,0 +1,30 @@
+version: "3"
+
+services:
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    env_file: 
+      - .env
+    ports:
+     - "5001:5000"
+    depends_on:
+      - redis
+    command: >
+      sh -c "python app.py"
+
+  celery:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    env_file: 
+      - .env
+    depends_on:
+      - app
+      - redis
+    command: >
+      sh -c "celery worker -A app.celery --loglevel=info"
+
+  redis:
+    image: redis
