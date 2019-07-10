@@ -2,6 +2,7 @@ import os
 
 from flask import Flask, render_template, request, session, redirect, url_for, flash
 from celery import Celery
+from celery.schedules import crontab
 from flask_mail import Mail, Message
 
 app = Flask(__name__)
@@ -11,9 +12,21 @@ app.config['SECRET_KEY'] =  'thi$-i$-$ecret'
 # Celery configuration
 app.config['CELERY_BROKER_URL'] = 'redis://redis:6379/0'
 app.config['CELERY_RESULT_BACKEND'] = 'redis://redis:6379/0'
+app.config['CELERY_TIMEZONE'] = 'Europe/Warsaw'
+app.config['CELERYBEAT_SCHEDULE'] = {
+    'test-celery': {
+        'task': 'app.send_async_email',
+        # Every minute
+        'schedule': crontab(minute="*"),
+    }
+}
+
 
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
+
+
+
 
 #Flask mail configuration  
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'  
@@ -30,13 +43,20 @@ mail = Mail(app)
 
 # Celery tasks
 @celery.task
-def send_async_email(recipient):
+def send_async_email(recipient=None):
     # print(f"user:{app.config['MAIL_USERNAME']} pass: {app.config['MAIL_PASSWORD']}") # for possibly quick debug
+    if recipient == None:
+        recipient = 'pilot.string@gmail.com'
+
     msg = Message('subject', sender = 'pilot.string@gmail.com', recipients=[recipient])
     msg.body = 'hi, this is the mail sent by using the celery app'  
 
     with app.app_context():
         mail.send(msg)
+
+
+
+
 
 # Routes
 @app.route('/', methods=['GET', 'POST'])  
