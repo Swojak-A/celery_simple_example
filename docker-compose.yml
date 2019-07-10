@@ -17,6 +17,13 @@ services:
     command: >
       sh -c "python app.py"
 
+  celery_beat:
+    <<: *base
+    depends_on:
+      - app
+    command: >
+      sh -c "celery beat -A app.celery --schedule=/tmp/celerybeat-schedule --loglevel=INFO --pidfile=/tmp/celerybeat.pid"
+
   celery:
     <<: *base
     depends_on:
